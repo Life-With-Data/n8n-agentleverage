@@ -1,0 +1,248 @@
+{
+	"name": "Call recording to minutes",
+	"meta": {
+		"templateCredsSetupCompleted": false,
+		"description": "Upload a call recording to Agent Leverage, run Speaker Separation, wait for the transcript, then generate Minutes from that job's sourceJobId."
+	},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"nodes": [
+		{
+			"parameters": {
+				"content": "## Call recording to minutes\n1. Add an Agent Leverage API credential (`agl_` token from Settings → API tokens).\n2. Submit a recording through the form.\n3. The workflow uploads the file, runs Speaker Separation, waits, then starts Minutes with `sourceJobId`.\n\nTemplate: https://www.agentleverage.co/n8n/call-recording-to-minutes.json",
+				"height": 340,
+				"width": 320
+			},
+			"id": "a1b2c3d4-0001-4000-8000-000000000001",
+			"name": "Notes",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [-240, 0]
+		},
+		{
+			"parameters": {
+				"formTitle": "Call recording to minutes",
+				"formDescription": "Upload a call recording. Agent Leverage will separate speakers, then draft minutes from that job.",
+				"formFields": {
+					"values": [
+						{
+							"fieldLabel": "Recording",
+							"fieldType": "file",
+							"multipleFiles": false,
+							"acceptFileTypes": ".mp3, .wav, .m4a, .ogg, .webm, .flac",
+							"requiredField": true
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "a1b2c3d4-0002-4000-8000-000000000002",
+			"name": "Form",
+			"type": "n8n-nodes-base.formTrigger",
+			"typeVersion": 2.2,
+			"position": [120, 160],
+			"webhookId": "agentleverage-call-recording-to-minutes"
+		},
+		{
+			"parameters": {
+				"resource": "file",
+				"operation": "uploadAudio",
+				"binaryPropertyName": "Recording",
+				"filename": "={{ $json.Recording?.[0]?.filename || 'recording' }}",
+				"mimeType": "={{ $json.Recording?.[0]?.mimetype || 'audio/mpeg' }}"
+			},
+			"id": "a1b2c3d4-0003-4000-8000-000000000003",
+			"name": "Upload Audio",
+			"type": "n8n-nodes-agentleverage.agentLeverage",
+			"typeVersion": 1,
+			"position": [360, 160],
+			"credentials": {
+				"agentLeverageApi": {
+					"id": null,
+					"name": "Agent Leverage API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"resource": "speakerSeparation",
+				"operation": "create",
+				"audioFileUrl": "={{ $json.audioFileUrl }}"
+			},
+			"id": "a1b2c3d4-0004-4000-8000-000000000004",
+			"name": "Speaker Separation",
+			"type": "n8n-nodes-agentleverage.agentLeverage",
+			"typeVersion": 1,
+			"position": [600, 160],
+			"credentials": {
+				"agentLeverageApi": {
+					"id": null,
+					"name": "Agent Leverage API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"resource": "job",
+				"operation": "wait",
+				"jobId": "={{ $json.job.id }}",
+				"pollIntervalMs": 5000,
+				"timeoutMs": 600000
+			},
+			"id": "a1b2c3d4-0005-4000-8000-000000000005",
+			"name": "Wait for Transcript",
+			"type": "n8n-nodes-agentleverage.agentLeverage",
+			"typeVersion": 1,
+			"position": [840, 160],
+			"credentials": {
+				"agentLeverageApi": {
+					"id": null,
+					"name": "Agent Leverage API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"resource": "minutes",
+				"operation": "create",
+				"sourceJobId": "={{ $json.job.id }}",
+				"additionalFields": {
+					"meetingType": "client"
+				}
+			},
+			"id": "a1b2c3d4-0006-4000-8000-000000000006",
+			"name": "Minutes",
+			"type": "n8n-nodes-agentleverage.agentLeverage",
+			"typeVersion": 1,
+			"position": [1080, 160],
+			"credentials": {
+				"agentLeverageApi": {
+					"id": null,
+					"name": "Agent Leverage API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"resource": "job",
+				"operation": "wait",
+				"jobId": "={{ $json.job.id }}",
+				"pollIntervalMs": 5000,
+				"timeoutMs": 600000
+			},
+			"id": "a1b2c3d4-0007-4000-8000-000000000007",
+			"name": "Wait for Minutes",
+			"type": "n8n-nodes-agentleverage.agentLeverage",
+			"typeVersion": 1,
+			"position": [1320, 160],
+			"credentials": {
+				"agentLeverageApi": {
+					"id": null,
+					"name": "Agent Leverage API"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"id": "a1b2c3d4-0008-4000-8000-output-jobid",
+							"name": "jobId",
+							"value": "={{ $json.job.id }}",
+							"type": "string"
+						},
+						{
+							"id": "a1b2c3d4-0008-4000-8000-output-status",
+							"name": "status",
+							"value": "={{ $json.job.status }}",
+							"type": "string"
+						},
+						{
+							"id": "a1b2c3d4-0008-4000-8000-output-minutes",
+							"name": "minutes",
+							"value": "={{ $json.job.output }}",
+							"type": "object"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "a1b2c3d4-0008-4000-8000-000000000008",
+			"name": "Output",
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [1560, 160]
+		}
+	],
+	"connections": {
+		"Form": {
+			"main": [
+				[
+					{
+						"node": "Upload Audio",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Upload Audio": {
+			"main": [
+				[
+					{
+						"node": "Speaker Separation",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Speaker Separation": {
+			"main": [
+				[
+					{
+						"node": "Wait for Transcript",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Wait for Transcript": {
+			"main": [
+				[
+					{
+						"node": "Minutes",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Minutes": {
+			"main": [
+				[
+					{
+						"node": "Wait for Minutes",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Wait for Minutes": {
+			"main": [
+				[
+					{
+						"node": "Output",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {}
+}

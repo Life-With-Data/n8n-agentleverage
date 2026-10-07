@@ -1,0 +1,68 @@
+{
+	"name": "n8n-nodes-agentleverage",
+	"version": "0.1.0",
+	"description": "n8n community node for Agent Leverage: call recordings, speaker separation, diarization, meeting minutes, and transcription.",
+	"license": "MIT",
+	"homepage": "https://www.agentleverage.co",
+	"author": {
+		"name": "Anthony Agnone",
+		"email": "anthonyagnone@gmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Life-With-Data/n8n-agentleverage.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Life-With-Data/n8n-agentleverage/issues"
+	},
+	"keywords": [
+		"n8n-community-node-package",
+		"agent-leverage",
+		"call-recording",
+		"speaker-separation",
+		"diarization",
+		"meeting-minutes",
+		"transcription"
+	],
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/AgentLeverageApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/AgentLeverage/AgentLeverage.node.js"
+		]
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"scan": "node scripts/scan-local.mjs",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease",
+		"test": "node --experimental-strip-types --test test/mcp.test.mjs test/operations.test.mjs test/workflow-template.test.mjs test/package-metadata.test.mjs"
+	},
+	"engines": {
+		"node": ">=20.15"
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "^0.23.0",
+		"@n8n/scan-community-package": "^0.38.0",
+		"eslint": "9.39.4",
+		"n8n-workflow": "*",
+		"prettier": "3.8.3",
+		"typescript": "5.9.3"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
